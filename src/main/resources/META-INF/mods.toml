@@ -1,0 +1,10 @@
+modLoader="javafml"
+loaderVersion="[43,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="poloniumsongs"
+version="1.0.0"
+displayName="Polonium Songs Mod"
+description="A mod that adds a custom music disc for Polonium Songs."
+authors="dxdrillbassx"

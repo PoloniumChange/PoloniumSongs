@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "poloniumsongs:item/polonium_disc_4"
+  }
+}

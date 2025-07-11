@@ -1,0 +1,92 @@
+{
+  "polonium_disc_1": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_1",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_2": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_2",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_3": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_3",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_4": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_4",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_5": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_5",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_6": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_6",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_7": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_7",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_8": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_8",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_9": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_9",
+        "stream": true
+      }
+    ]
+  },
+  "polonium_disc_10": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "poloniumsongs:polonium_disc_10",
+        "stream": true
+      }
+    ]
+  }
+}
