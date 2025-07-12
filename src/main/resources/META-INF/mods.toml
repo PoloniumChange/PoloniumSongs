@@ -8,3 +8,24 @@ version="1.0.0"
 displayName="Polonium Songs Mod"
 description="A mod that adds a custom music disc for Polonium Songs."
 authors="dxdrillbassx"
+
+[[dependencies.poloniumsongs]]
+modId="forge"
+mandatory=true
+versionRange="[43,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.poloniumsongs]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.19.2,1.20)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.poloniumsongs]]
+modId="emotecraft"
+mandatory=false
+versionRange="[2.2.7,)"
+ordering="AFTER"
+side="BOTH"

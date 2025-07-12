@@ -1,6 +1,5 @@
 {
   "polonium_disc_1": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_1",
@@ -9,7 +8,6 @@
     ]
   },
   "polonium_disc_2": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_2",
@@ -18,7 +16,6 @@
     ]
   },
   "polonium_disc_3": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_3",
@@ -27,7 +24,6 @@
     ]
   },
   "polonium_disc_4": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_4",
@@ -36,7 +32,6 @@
     ]
   },
   "polonium_disc_5": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_5",
@@ -45,7 +40,6 @@
     ]
   },
   "polonium_disc_6": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_6",
@@ -54,7 +48,6 @@
     ]
   },
   "polonium_disc_7": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_7",
@@ -63,7 +56,6 @@
     ]
   },
   "polonium_disc_8": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_8",
@@ -72,7 +64,6 @@
     ]
   },
   "polonium_disc_9": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_9",
@@ -81,7 +72,6 @@
     ]
   },
   "polonium_disc_10": {
-    "category": "record",
     "sounds": [
       {
         "name": "poloniumsongs:polonium_disc_10",

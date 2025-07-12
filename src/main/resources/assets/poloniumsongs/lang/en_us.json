@@ -9,5 +9,7 @@
   "item.poloniumsongs.polonium_disc_8": "prodwhite - all I wanted x rinoplastika",
   "item.poloniumsongs.polonium_disc_9": "SCRIPTZ, Jon T - SMOKE EM OUT",
   "item.poloniumsongs.polonium_disc_10": "Bryan Adams - Run To You",
-  "itemGroup.poloniumsongs.polonium_songs_tab": "Polonium Songs"
+  "itemGroup.poloniumsongs": "Polonium Songs",
+  "item.poloniumsongs.music_merchant_spawn_egg": "Music Merchant Spawn Egg",
+  "entity.minecraft.villager.poloniumsongs.music_merchant": "Music Merchant"
 }
