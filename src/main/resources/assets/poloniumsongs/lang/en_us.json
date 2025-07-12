@@ -1,15 +1,27 @@
 {
   "item.poloniumsongs.polonium_disc_1": "RIOT - Metalicious",
+  "item.poloniumsongs.polonium_disc_1.desc": "Energetic track with powerful metal riffs",
   "item.poloniumsongs.polonium_disc_2": "RIOT - Overkill",
+  "item.poloniumsongs.polonium_disc_2.desc": "Explosive electronic beat for epic adventures",
   "item.poloniumsongs.polonium_disc_3": "2hollis - Poster Boy (Slow)",
+  "item.poloniumsongs.polonium_disc_3.desc": "Slow and atmospheric track for reflection",
   "item.poloniumsongs.polonium_disc_4": "Cult Member - three",
+  "item.poloniumsongs.polonium_disc_4.desc": "Mysterious melody with mystical energy",
   "item.poloniumsongs.polonium_disc_5": "HAON - Hood",
+  "item.poloniumsongs.polonium_disc_5.desc": "Hip-hop rhythms with a street vibe",
   "item.poloniumsongs.polonium_disc_6": "MELLY MIKE, Sao Paulo - Young Black & Rich",
+  "item.poloniumsongs.polonium_disc_6.desc": "Dynamic track with vibrant modern beats",
   "item.poloniumsongs.polonium_disc_7": "урал гайсин - блюз",
+  "item.poloniumsongs.polonium_disc_7.desc": "Soulful blues with Russian depth",
   "item.poloniumsongs.polonium_disc_8": "prodwhite - all I wanted x rinoplastika",
+  "item.poloniumsongs.polonium_disc_8.desc": "Experimental mix with an emotional vibe",
   "item.poloniumsongs.polonium_disc_9": "SCRIPTZ, Jon T - SMOKE EM OUT",
+  "item.poloniumsongs.polonium_disc_9.desc": "Aggressive track for bold battles",
   "item.poloniumsongs.polonium_disc_10": "Bryan Adams - Run To You",
+  "item.poloniumsongs.polonium_disc_10.desc": "Classic rock for swift journeys",
   "itemGroup.poloniumsongs": "Polonium Songs",
   "item.poloniumsongs.music_merchant_spawn_egg": "Music Merchant Spawn Egg",
-  "entity.minecraft.villager.poloniumsongs.music_merchant": "Music Merchant"
+  "entity.minecraft.villager.poloniumsongs.music_merchant": "Music Merchant",
+  "merchant.trades.poloniumsongs.music_merchant": "Music Merchant",
+  "villager.poloniumsongs.music_merchant": "Music Merchant"
 }

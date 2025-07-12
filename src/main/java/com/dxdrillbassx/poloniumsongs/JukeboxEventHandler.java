@@ -5,16 +5,19 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-
+import net.minecraftforge.network.PacketDistributor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,24 +31,32 @@ public class JukeboxEventHandler {
     private static final Map<Item, MobEffectInstance> DISC_TO_EFFECT = new HashMap<>();
     // Хранение активного проигрывателя: BlockPos -> эмоция
     private static final Map<BlockPos, String> ACTIVE_JUKEBOXES = new HashMap<>();
-    // Хранение данных игроков: UUID -> {последняя позиция, время бездействия, состояние эмоции}
+    // Хранение данных игроков: UUID -> {последняя позиция, время бездействия, состояние эмоции, время начала эмоции}
     private static final Map<UUID, PlayerData> PLAYER_DATA = new HashMap<>();
     // Радиус слышимости проигрывателя
-    private static final double JUKEBOX_RANGE = 65.0;
+    private static final double JUKEBOX_RANGE = 20.0;
+    // Минимальный радиус полной громкости
+    private static final double JUKEBOX_FULL_VOLUME_RANGE = 5.0;
     // Время бездействия (в тиках) до возобновления эмоции (5 секунд = 100 тиков)
     private static final int INACTIVITY_THRESHOLD = 100;
+    // Базовая громкость для фонового радио
+    private static final float BASE_VOLUME = 0.3F;
 
     private static class PlayerData {
         double lastX, lastY, lastZ;
         long lastMoveTime;
         boolean isEmoteActive;
+        long emoteStartTime; // Время начала эмоции для синхронизации
+        String emoteName; // Текущая эмоция
 
-        PlayerData(double x, double y, double z, long time, boolean emoteActive) {
+        PlayerData(double x, double y, double z, long time, boolean emoteActive, long emoteStartTime, String emoteName) {
             this.lastX = x;
             this.lastY = y;
             this.lastZ = z;
             this.lastMoveTime = time;
             this.isEmoteActive = emoteActive;
+            this.emoteStartTime = emoteStartTime;
+            this.emoteName = emoteName;
         }
     }
 
@@ -115,16 +126,16 @@ public class JukeboxEventHandler {
                             if (effect != null && player instanceof ServerPlayer serverPlayer) {
                                 serverPlayer.addEffect(new MobEffectInstance(effect));
                             }
-                            // Сохраняем начальную позицию игрока и устанавливаем эмоцию как активную
+                            // Сохраняем начальную позицию игрока, время начала эмоции и устанавливаем эмоцию как активную
                             PLAYER_DATA.put(player.getUUID(), new PlayerData(
-                                    player.getX(), player.getY(), player.getZ(), level.getGameTime(), true
+                                    player.getX(), player.getY(), player.getZ(), level.getGameTime(), true, level.getGameTime(), emoteName
                             ));
-                            // Отправляем сетевой пакет для синхронизации
-                            NetworkHandler.INSTANCE.sendTo(
-                                    new JukeboxSyncPacket(event.getPos(), emoteName),
-                                    ((ServerPlayer) player).connection.getConnection(),
-                                    net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT
-                            );
+                            // Отправляем сетевой пакет для синхронизации с низкой громкостью
+                            float volume = BASE_VOLUME;
+                            if (hasMerchantNearby(level, event.getPos())) {
+                                volume = calculateVolume((float) player.distanceToSqr(event.getPos().getX() + 0.5, event.getPos().getY() + 0.5, event.getPos().getZ() + 0.5));
+                            }
+                            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new JukeboxSyncPacket(event.getPos(), emoteName, volume));
                         } catch (Exception e) {
                             System.out.println("Failed to execute emote command for " + emoteName + " on player " + player.getName().getString() + ": " + e.getMessage());
                         }
@@ -153,10 +164,32 @@ public class JukeboxEventHandler {
                         );
                         // Удаляем данные игрока
                         PLAYER_DATA.remove(player.getUUID());
+                        // Отправляем пакет для остановки звука
+                        NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new JukeboxSyncPacket(event.getPos(), "", 0.0F));
                     } catch (Exception e) {
                         System.out.println("Failed to execute emote stop command for player " + player.getName().getString() + ": " + e.getMessage());
                     }
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerInteractWithJukebox(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getLevel().isClientSide()) return; // Обрабатываем только на сервере
+
+        BlockPos pos = event.getPos();
+        Level level = event.getLevel();
+        BlockState state = level.getBlockState(pos);
+
+        // Проверяем, является ли блок проигрывателем
+        if (state.is(Blocks.JUKEBOX)) {
+            // Проверяем наличие MusicMerchantEntity в радиусе 5 блоков
+            AABB merchantArea = new AABB(pos).inflate(5.0D);
+            boolean hasMerchantNearby = !level.getEntitiesOfClass(MusicMerchantEntity.class, merchantArea).isEmpty();
+            if (hasMerchantNearby) {
+                // Отменяем взаимодействие с проигрывателем
+                event.setCanceled(true);
             }
         }
     }
@@ -176,6 +209,7 @@ public class JukeboxEventHandler {
         boolean inJukeboxRange = false;
         BlockPos activeJukeboxPos = null;
         String emoteName = null;
+        Item activeDisc = null;
 
         for (Map.Entry<BlockPos, String> entry : ACTIVE_JUKEBOXES.entrySet()) {
             BlockPos jukeboxPos = entry.getKey();
@@ -185,22 +219,28 @@ public class JukeboxEventHandler {
                     inJukeboxRange = true;
                     activeJukeboxPos = jukeboxPos;
                     emoteName = entry.getValue();
-                    Item activeDisc = jukebox.getRecord().getItem();
-                    // Применяем эффект, если он есть
-                    MobEffectInstance effect = DISC_TO_EFFECT.get(activeDisc);
-                    if (effect != null) {
-                        serverPlayer.addEffect(new MobEffectInstance(effect));
-                    }
+                    activeDisc = jukebox.getRecord().getItem();
+                    // Вычисляем громкость на основе расстояния
+                    float volume = calculateVolume((float) Math.sqrt(distance));
+                    // Отправляем пакет для синхронизации громкости
+                    NetworkHandler.INSTANCE.send(
+                            PacketDistributor.PLAYER.with(() -> serverPlayer),
+                            new JukeboxSyncPacket(activeJukeboxPos, emoteName, volume)
+                    );
                     break;
                 }
             } else {
                 // Удаляем неактивный проигрыватель
                 ACTIVE_JUKEBOXES.remove(jukeboxPos);
+                NetworkHandler.INSTANCE.send(
+                        PacketDistributor.PLAYER.with(() -> serverPlayer),
+                        new JukeboxSyncPacket(jukeboxPos, "", 0.0F)
+                );
             }
         }
 
         if (!inJukeboxRange) {
-            // Если игрок вне зоны, останавливаем эмоцию и удаляем данные
+            // Если игрок вне зоны, останавливаем эмоцию и звук
             if (data != null && data.isEmoteActive) {
                 try {
                     String command = "emotes stop " + player.getName().getString();
@@ -208,7 +248,12 @@ public class JukeboxEventHandler {
                             level.getServer().createCommandSourceStack().withPermission(4),
                             command
                     );
-                    PLAYER_DATA.remove(playerUUID);
+                    data.isEmoteActive = false;
+                    // Отправляем пакет для остановки звука
+                    NetworkHandler.INSTANCE.send(
+                            PacketDistributor.PLAYER.with(() -> serverPlayer),
+                            new JukeboxSyncPacket(activeJukeboxPos, "", 0.0F)
+                    );
                 } catch (Exception e) {
                     System.out.println("Failed to execute emote stop command for player " + player.getName().getString() + ": " + e.getMessage());
                 }
@@ -216,10 +261,16 @@ public class JukeboxEventHandler {
             return;
         }
 
+        // Применяем эффект, если он есть
+        MobEffectInstance effect = DISC_TO_EFFECT.get(activeDisc);
+        if (effect != null) {
+            serverPlayer.addEffect(new MobEffectInstance(effect));
+        }
+
         // Проверяем движение игрока
         if (data == null) {
             // Если данных нет, но игрок в зоне, инициализируем их
-            data = new PlayerData(player.getX(), player.getY(), player.getZ(), level.getGameTime(), true);
+            data = new PlayerData(player.getX(), player.getY(), player.getZ(), level.getGameTime(), true, level.getGameTime(), emoteName);
             PLAYER_DATA.put(playerUUID, data);
             try {
                 String command = "emotes play \"" + emoteName + "\" " + player.getName().getString() + " true";
@@ -228,10 +279,10 @@ public class JukeboxEventHandler {
                         command
                 );
                 // Отправляем сетевой пакет для синхронизации
-                NetworkHandler.INSTANCE.sendTo(
-                        new JukeboxSyncPacket(activeJukeboxPos, emoteName),
-                        serverPlayer.connection.getConnection(),
-                        net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT
+                float volume = calculateVolume((float) player.distanceToSqr(activeJukeboxPos.getX() + 0.5, activeJukeboxPos.getY() + 0.5, activeJukeboxPos.getZ() + 0.5));
+                NetworkHandler.INSTANCE.send(
+                        PacketDistributor.PLAYER.with(() -> serverPlayer),
+                        new JukeboxSyncPacket(activeJukeboxPos, emoteName, volume)
                 );
             } catch (Exception e) {
                 System.out.println("Failed to execute emote command for " + emoteName + " on player " + player.getName().getString() + ": " + e.getMessage());
@@ -275,11 +326,13 @@ public class JukeboxEventHandler {
                         );
                         data.isEmoteActive = true;
                         data.lastMoveTime = level.getGameTime();
+                        data.emoteStartTime = level.getGameTime(); // Обновляем время начала для синхронизации
+                        data.emoteName = emoteName;
                         // Отправляем сетевой пакет для синхронизации
-                        NetworkHandler.INSTANCE.sendTo(
-                                new JukeboxSyncPacket(activeJukeboxPos, emoteName),
-                                serverPlayer.connection.getConnection(),
-                                net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT
+                        float volume = calculateVolume((float) player.distanceToSqr(activeJukeboxPos.getX() + 0.5, activeJukeboxPos.getY() + 0.5, activeJukeboxPos.getZ() + 0.5));
+                        NetworkHandler.INSTANCE.send(
+                                PacketDistributor.PLAYER.with(() -> serverPlayer),
+                                new JukeboxSyncPacket(activeJukeboxPos, emoteName, volume)
                         );
                     } catch (Exception e) {
                         System.out.println("Failed to execute emote command for " + emoteName + " on player " + player.getName().getString() + ": " + e.getMessage());
@@ -287,5 +340,24 @@ public class JukeboxEventHandler {
                 }
             }
         }
+    }
+
+    // Вычисляем громкость на основе расстояния
+    private static float calculateVolume(float distance) {
+        if (distance <= JUKEBOX_FULL_VOLUME_RANGE) {
+            return BASE_VOLUME; // Базовая громкость для фонового радио
+        } else if (distance >= JUKEBOX_RANGE) {
+            return 0.0F; // Звук выключен за пределами зоны
+        } else {
+            // Линейное затухание от BASE_VOLUME (на 5 блоках) до 0.0 (на 20 блоках)
+            float t = (distance - (float) JUKEBOX_FULL_VOLUME_RANGE) / ((float) JUKEBOX_RANGE - (float) JUKEBOX_FULL_VOLUME_RANGE);
+            return BASE_VOLUME * (1.0F - t);
+        }
+    }
+
+    // Проверяем наличие MusicMerchantEntity рядом с проигрывателем
+    private static boolean hasMerchantNearby(Level level, BlockPos jukeboxPos) {
+        AABB merchantArea = new AABB(jukeboxPos).inflate(5.0D);
+        return !level.getEntitiesOfClass(MusicMerchantEntity.class, merchantArea).isEmpty();
     }
 }
